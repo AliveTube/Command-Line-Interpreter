@@ -1,34 +1,36 @@
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
 class Parser {
     private String commandName;
-    private List<String> args;
-
+    String[] args;
     public Parser() {
         commandName = "";
-        args = new ArrayList<String>();
+        args = new String[0];
     }
 
     public boolean parse(String input){
         List<String> commandList = Arrays.asList("echo", "pwd", "cd", "ls", "ls -r", "mkdir", "rmdir", "touch", "cp", "cp -r", "rm", "cat", "wc", ">", ">>", "history");
 
         String[] words = input.split("\\s+");
+        if(words.length >= 1){
+            if(commandList.contains(words[0])){
+                commandName = words[0];
+                args = new String[words.length - 1];
 
-        if(commandList.contains(words[0])){
-            commandName = words[0];
-            for (int i = 1; i < words.length; i++) {
-                args.add(words[i]);
+                System.arraycopy(words, 1, args, 0, words.length - 1);
+
+                return true;
             }
-            return true;
         }
+
         if(words.length > 1){
             if(commandList.contains(words[0]+" "+words[1])){
-                commandName = words[0]+" "+words[1];
-                for (int i = 2; i < words.length; i++) {
-                    args.add(words[i]);
-                }
+                commandName = words[0];
+                args = new String[words.length - 2];
+
+                System.arraycopy(words, 2, args, 0, words.length - 2);
+
                 return true;
             }
         }
@@ -37,7 +39,7 @@ class Parser {
     public String getCommandName(){
         return commandName;
     }
-    public List<String> getArgs(){
+    public String[] getArgs() {
         return args;
     }
 }

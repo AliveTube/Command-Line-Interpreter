@@ -1,3 +1,6 @@
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -5,6 +8,8 @@ import java.util.Scanner;
 
 public class Terminal {
     static Parser parser;
+    static Path cur = Paths.get("");
+
     public static void chooseCommandAction(String command, List<String> arguments) {
         switch (command) {
             case "echo":
@@ -66,10 +71,35 @@ public class Terminal {
 
     public static void pwd() {
         // Implement pwd command logic
+        System.out.println(cur.toString());
     }
 
     public static void cd(List<String> arguments) {
+
         // Implement cd command logic
+        if(arguments.isEmpty()){
+            cur = Paths.get("");
+            cur = cur.toAbsolutePath();
+        }
+        else if(arguments.size() == 1){
+            if(arguments.get(0).equals("..")){
+                if(cur.getParent() != null)
+                    cur = cur.getParent();
+            }
+            else{
+                Path tmp = Paths.get(arguments.get(0));
+                tmp = tmp.toAbsolutePath();
+                if(!tmp.toFile().exists()){
+                    System.out.println("Invalid path!");
+                }
+                else{
+                    cur = tmp;
+                }
+            }
+        }
+        else{
+            System.out.println("Invalid arguments!");
+        }
     }
 
     public static void ls(List<String> arguments) {
@@ -85,7 +115,7 @@ public class Terminal {
     }
 
     public static void rmdir(List<String> arguments) {
-        // Implement rmdir command logic
+
     }
 
     public static void touch(List<String> arguments) {
@@ -102,6 +132,24 @@ public class Terminal {
 
     public static void rm(List<String> arguments) {
         // Implement rm command logic
+        if(arguments.size() != 1){
+            System.out.println("Invalid command!");
+            return;
+        }
+
+        if(Files.exists(cur.resolve(arguments.get(0))) && Files.isRegularFile(cur.resolve(arguments.get(0)))){
+            File file
+                    = new File(cur.resolve(arguments.get(0)).toString());
+            if (file.delete()) {
+                System.out.println("File deleted successfully");
+            }
+            else {
+                System.out.println("Failed to delete the file");
+            }
+        }
+        else{
+            System.out.println("Invalid arguments!");
+        }
     }
 
     public static void cat(List<String> arguments) {
@@ -127,10 +175,11 @@ public class Terminal {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         parser = new Parser();
+        cur = cur.toAbsolutePath();
         String command;
 
         while (true) {
-            List<String> arguments = new ArrayList<>();
+            List<String> arguments;
             System.out.print("Enter a command: ");
 
             String userInput = scanner.nextLine();
@@ -146,6 +195,8 @@ public class Terminal {
             else {
                 System.out.println("Invalid command!");
             }
+
+            System.out.println(cur.toString());
         }
         scanner.close();
     }

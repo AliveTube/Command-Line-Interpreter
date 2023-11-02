@@ -1,10 +1,9 @@
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.io.FileNotFoundException;
 
 public class Terminal {
     static Parser parser;
@@ -22,7 +21,7 @@ public class Terminal {
                 cd(arguments);
                 break;
             case "ls":
-                ls(arguments);
+                ls();
                 break;
             case "ls -r":
                 lsRecursive(arguments);
@@ -70,13 +69,10 @@ public class Terminal {
     }
 
     public static void pwd() {
-        // Implement pwd command logic
         System.out.println(cur.toString());
     }
 
     public static void cd(List<String> arguments) {
-
-        // Implement cd command logic
         if(arguments.isEmpty()){
             cur = Paths.get("");
             cur = cur.toAbsolutePath();
@@ -102,8 +98,18 @@ public class Terminal {
         }
     }
 
-    public static void ls(List<String> arguments) {
-        // Implement ls command logic
+    public static void ls() {
+        File directoryName = new File(cur.toUri());
+        File[] fileList = directoryName.listFiles();
+
+        if (fileList != null) {
+            for (File file : fileList) {
+                System.out.println(file.getName());
+            }
+        }
+        else {
+            System.out.println("The directory is empty or doesn't exist!");
+        }
     }
 
     public static void lsRecursive(List<String> arguments) {
@@ -111,12 +117,73 @@ public class Terminal {
     }
 
     public static void mkdir(List<String> arguments) {
-        // Implement mkdir command logic
+        if (arguments.size() == 0) {
+            System.out.println("Invalid arguments!");
+            return;
+        }
+        for (String arg : arguments) {
+            File dir = new File(arg);
+            if (!dir.isAbsolute()) {
+                dir = new File(cur.toFile(), arg);
+            }
+            if (!dir.exists() && dir.mkdirs()) {
+                System.out.println("Created directory: " + dir.getAbsolutePath());
+            }
+            else {
+                System.out.println("Directory already exists!");
+            }
+        }
     }
 
     public static void rmdir(List<String> arguments) {
-
+        // Needs A LOT OF MODIFICATIONS
+        if (arguments.size() != 1) {
+            System.out.println("Invalid arguments!");
+            return;
+        }
+        String argument = arguments.get(0);
+        if(arguments.size() == 1 && argument.equals("*")){
+            for (String arg : arguments) {
+                File dir = new File(cur.toUri());
+                if (dir.exists() && dir.isDirectory()) {
+                    if (dir.list().length == 0) {
+                        if (dir.delete()) {
+                            System.out.println("Deleted directory successfully");
+                        }
+                        else {
+                            System.out.println("Failed to delete directory");
+                        }
+                    }
+                    else {
+                        System.out.println("Directory is not empty");
+                    }
+                }
+                else {
+                    System.out.println("Invalid arguments!");
+                }
+            }
+        }
+        else{
+            File dir = new File(arguments.get(0));
+            if (dir.exists() && dir.isDirectory()) {
+                if (dir.list().length == 0) {
+                    if (dir.delete()) {
+                        System.out.println("Deleted directory successfully");
+                    }
+                    else {
+                        System.out.println("Failed to delete directory");
+                    }
+                }
+                else {
+                    System.out.println("Directory is not empty");
+                }
+            }
+            else {
+                System.out.println("Invalid arguments!");
+            }
+        }
     }
+
 
     public static void touch(List<String> arguments) {
         // Implement touch command logic
@@ -138,8 +205,7 @@ public class Terminal {
         }
 
         if(Files.exists(cur.resolve(arguments.get(0))) && Files.isRegularFile(cur.resolve(arguments.get(0)))){
-            File file
-                    = new File(cur.resolve(arguments.get(0)).toString());
+            File file = new File(cur.resolve(arguments.get(0)).toString());
             if (file.delete()) {
                 System.out.println("File deleted successfully");
             }
@@ -157,7 +223,32 @@ public class Terminal {
     }
 
     public static void wc(List<String> arguments) {
-        // Implement wc command logic
+        File file = new File(cur.resolve(arguments.get(0)).toString());
+        if(arguments.size() != 1){
+            System.out.println("Invalid arguments!");
+            return;
+        }
+        if(Files.exists(file.toPath()) && Files.isRegularFile(cur.resolve(arguments.get(0)))){
+            try {
+                int linesCount = 0, charCount = 0, wordCount = 0;
+                Scanner myReader = new Scanner(file);
+                while (myReader.hasNextLine()){
+                    linesCount++;
+                    String data = myReader.nextLine();
+                    charCount += data.length();
+                    String[] words = data.split("\\s+");
+                    wordCount += words.length;
+                }
+                System.out.println(linesCount + " " + wordCount + " " + charCount + " " + arguments.get(0));
+                myReader.close();
+            } catch (FileNotFoundException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
+        }
+        else {
+            System.out.println("File not found!");
+        }
     }
 
     public static void redirectOutput(List<String> arguments) {
@@ -195,7 +286,7 @@ public class Terminal {
             else {
                 System.out.println("Invalid command!");
             }
-
+            // We will delete this later on
             System.out.println(cur.toString());
         }
         scanner.close();

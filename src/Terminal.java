@@ -1,5 +1,6 @@
 import java.io.File;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -8,8 +9,9 @@ import java.io.FileNotFoundException;
 public class Terminal {
     static Parser parser;
     static Path cur = Paths.get("");
-
+    static List<String> historyList = new ArrayList<>();
     public static void chooseCommandAction(String command, List<String> arguments) {
+        historyList.add(command);
         switch (command) {
             case "echo":
                 echo(arguments);
@@ -83,9 +85,8 @@ public class Terminal {
                     cur = cur.getParent();
             }
             else{
-                Path tmp = Paths.get(arguments.get(0));
-                tmp = tmp.toAbsolutePath();
-                if(!tmp.toFile().exists()){
+                Path tmp = cur.resolve(arguments.get(0)).toAbsolutePath();
+                if(!tmp.toFile().exists() || !tmp.toFile().isDirectory()){
                     System.out.println("Invalid path!");
                 }
                 else{
@@ -136,18 +137,18 @@ public class Terminal {
     }
 
     public static void rmdir(List<String> arguments) {
-        // Needs A LOT OF MODIFICATIONS
         if (arguments.size() != 1) {
             System.out.println("Invalid arguments!");
             return;
         }
         String argument = arguments.get(0);
-        if(arguments.size() == 1 && argument.equals("*")){
-            for (String arg : arguments) {
-                File dir = new File(cur.toUri());
-                if (dir.exists() && dir.isDirectory()) {
-                    if (dir.list().length == 0) {
-                        if (dir.delete()) {
+        if(argument.equals("*")){
+            File dir = new File(cur.toString());
+            File[] subDirs = dir.listFiles();
+            for (File subDir : subDirs) {
+                if (subDir.exists() && subDir.isDirectory()) {
+                    if (subDir.list().length == 0) {
+                        if (subDir.delete()) {
                             System.out.println("Deleted directory successfully");
                         }
                         else {
@@ -164,7 +165,8 @@ public class Terminal {
             }
         }
         else{
-            File dir = new File(arguments.get(0));
+            Path tmp = cur.resolve(arguments.get(0)).toAbsolutePath();
+            File dir = new File(tmp.toString());
             if (dir.exists() && dir.isDirectory()) {
                 if (dir.list().length == 0) {
                     if (dir.delete()) {
@@ -183,7 +185,6 @@ public class Terminal {
             }
         }
     }
-
 
     public static void touch(List<String> arguments) {
         // Implement touch command logic
@@ -260,7 +261,11 @@ public class Terminal {
     }
 
     public static void history() {
-        // Implement history command logic
+        int counter = 1;
+        for (String item : historyList) {
+            System.out.println(counter + "- " + item);
+            counter++;
+        }
     }
 
     public static void main(String[] args) {

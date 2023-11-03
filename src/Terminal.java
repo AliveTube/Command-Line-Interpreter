@@ -216,8 +216,37 @@ public class Terminal {
         }
     }
 
-    public static void cp(List<String> arguments) {
-        // Implement cp command logic
+    public static void cp(List<String> arguments) throws IOException {
+        if (arguments.size() != 2) {
+            System.out.println("The number of arguments must be 2");
+        }
+        Path path1 = Paths.get(arguments.get(0));
+        Path path2 = Paths.get(arguments.get(1));
+        if (!path1.isAbsolute()) {
+            path1 = cur.resolve(arguments.get(0));
+        }
+        if (!path1.toFile().exists()) {
+            System.out.println("The first file name or directory isn't correct");
+            return;
+        }
+        if (!path2.isAbsolute()) {
+            path2 = cur.resolve(arguments.get(1));
+        }
+        if (!path2.toFile().exists()) {
+            System.out.println("The second file name or directory isn't correct");
+            return;
+        }
+        String line;
+        FileReader file1 = new FileReader(path1.toString());
+        BufferedReader readFile1 = new BufferedReader(file1);
+
+        FileWriter file2 = new FileWriter(path2.toString(),true);
+        while ((line = readFile1.readLine()) != null) {
+            file2.write(line);
+            file2.write('\n');
+        }
+        file1.close();
+        file2.close();
     }
 
     public static void cpRecursive(List<String> arguments) {
@@ -245,8 +274,50 @@ public class Terminal {
         }
     }
 
-    public static void cat(List<String> arguments) {
-        // Implement cat command logic
+    public static void cat(List<String> arguments) throws IOException {
+        if (arguments.size() > 2) {
+            System.out.println("Too many arguments were given,The maximum number of arguments is 2");
+        }
+        Path path1 = Paths.get(arguments.get(0));
+        if (!path1.isAbsolute()) {
+            path1 = cur.resolve(arguments.get(0));
+        }
+        if (!path1.toFile().exists()) {
+            System.out.println("The first file name or directory isn't correct");
+            return;
+        }
+        String line;
+        FileReader file1 = new FileReader(path1.toString());
+        BufferedReader readFile1 = new BufferedReader(file1);
+
+        if (arguments.size() == 2) {
+            Path path2 = Paths.get(arguments.get(1));
+            if (!path2.isAbsolute()) {
+                path2 = cur.resolve(arguments.get(1));
+            }
+            if (!path2.toFile().exists()) {
+                System.out.println("The second file name or directory isn't correct");
+                return;
+            }
+
+            while ((line = readFile1.readLine()) != null) {
+                System.out.println(line);
+            }
+
+            FileReader file2 = new FileReader(path2.toString());
+            BufferedReader readFile2 = new BufferedReader(file2);
+            while ((line = readFile2.readLine()) != null) {
+                System.out.println(line);
+            }
+            file2.close();
+        }
+
+        else {
+            while ((line = readFile1.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
+        file1.close();
     }
 
     public static void wc(List<String> arguments) {

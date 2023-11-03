@@ -1,17 +1,57 @@
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
-import java.io.FileNotFoundException;
 
+class Parser {
+    private String commandName;
+    String[] args;
+    public Parser() {
+        commandName = "";
+        args = new String[0];
+    }
+
+    public boolean parse(String input){
+        List<String> commandList = Arrays.asList("echo", "pwd", "cd", "ls", "ls -r", "mkdir", "rmdir", "touch", "cp", "cp -r", "rm", "cat", "wc", ">", ">>", "history");
+
+        String[] words = input.split("\\s+");
+        if(words.length > 1){
+            if(commandList.contains(words[0]+" "+words[1])){
+                commandName = words[0] + " " + words[1];
+                args = new String[words.length - 2];
+
+                System.arraycopy(words, 2, args, 0, words.length - 2);
+
+                return true;
+            }
+        }
+
+        if(words.length >= 1){
+            if(commandList.contains(words[0])){
+                commandName = words[0];
+                args = new String[words.length - 1];
+
+                System.arraycopy(words, 1, args, 0, words.length - 1);
+
+                return true;
+            }
+        }
+        return false;
+    }
+    public String getCommandName(){
+        return commandName;
+    }
+    public String[] getArgs() {
+        return args;
+    }
+}
 public class Terminal {
     static Parser parser;
     static Path cur = Paths.get("");
     static List<String> historyList = new ArrayList<>();
-    public static void chooseCommandAction(String command, List<String> arguments) {
+    public static void chooseCommandAction(String command, List<String> arguments) throws IOException {
         historyList.add(command);
         switch (command) {
             case "echo":
@@ -41,9 +81,6 @@ public class Terminal {
             case "cp":
                 cp(arguments);
                 break;
-            case "cp -r":
-                cpRecursive(arguments);
-                break;
             case "rm":
                 rm(arguments);
                 break;
@@ -53,14 +90,11 @@ public class Terminal {
             case "wc":
                 wc(arguments);
                 break;
-            case ">":
-                redirectOutput(arguments);
-                break;
-            case ">>":
-                appendOutput(arguments);
-                break;
             case "history":
                 history();
+                break;
+            case "exit":
+                exit();
                 break;
         }
     }
@@ -69,6 +103,10 @@ public class Terminal {
             System.out.print(s + " ");
         }
         System.out.println();
+    }
+
+    public static void exit() {
+        System.exit(0);
     }
 
     public static void pwd() {
@@ -219,6 +257,7 @@ public class Terminal {
     public static void cp(List<String> arguments) throws IOException {
         if (arguments.size() != 2) {
             System.out.println("The number of arguments must be 2");
+            return;
         }
         Path path1 = Paths.get(arguments.get(0));
         Path path2 = Paths.get(arguments.get(1));
@@ -249,10 +288,6 @@ public class Terminal {
         file2.close();
     }
 
-    public static void cpRecursive(List<String> arguments) {
-        // Implement cp -r command logic
-    }
-
     public static void rm(List<String> arguments) {
         // Implement rm command logic
         if(arguments.size() != 1){
@@ -275,8 +310,9 @@ public class Terminal {
     }
 
     public static void cat(List<String> arguments) throws IOException {
-        if (arguments.size() > 2) {
-            System.out.println("Too many arguments were given,The maximum number of arguments is 2");
+        if (arguments.size() > 2 || arguments.isEmpty()) {
+            System.out.println("Invalid arguments");
+            return;
         }
         Path path1 = Paths.get(arguments.get(0));
         if (!path1.isAbsolute()) {
@@ -349,14 +385,6 @@ public class Terminal {
         }
     }
 
-    public static void redirectOutput(List<String> arguments) {
-        // Implement > command logic
-    }
-
-    public static void appendOutput(List<String> arguments) {
-        // Implement >> command logic
-    }
-
     public static void history() {
         int counter = 1;
         for (String item : historyList) {
@@ -365,7 +393,7 @@ public class Terminal {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
         parser = new Parser();
         cur = cur.toAbsolutePath();
@@ -388,8 +416,6 @@ public class Terminal {
             else {
                 System.out.println("Invalid command!");
             }
-            // We will delete this later on
-            System.out.println(cur.toString());
         }
         scanner.close();
     }

@@ -14,7 +14,7 @@ class Parser {
     }
 
     public boolean parse(String input){
-        List<String> commandList = Arrays.asList("echo", "pwd", "cd", "ls", "ls -r", "mkdir", "rmdir", "touch", "cp", "cp -r", "rm", "cat", "wc", ">", ">>", "history");
+        List<String> commandList = Arrays.asList("echo", "pwd", "cd", "ls", "ls -r", "mkdir", "rmdir", "touch", "cp", "rm", "cat", "wc", "history", "exit");
 
         String[] words = input.split("\\s+");
         if(words.length > 1){
@@ -48,10 +48,10 @@ class Parser {
     }
 }
 public class Terminal {
-    static Parser parser;
-    static Path cur = Paths.get("");
-    static List<String> historyList = new ArrayList<>();
-    public static void chooseCommandAction(String command, List<String> arguments) throws IOException {
+     Parser parser;
+     Path cur = Paths.get("");
+     List<String> historyList = new ArrayList<>();
+    public  void chooseCommandAction(String command, List<String> arguments) throws IOException {
         historyList.add(command);
         switch (command) {
             case "echo":
@@ -64,10 +64,10 @@ public class Terminal {
                 cd(arguments);
                 break;
             case "ls":
-                ls();
+                ls(arguments);
                 break;
             case "ls -r":
-                lsReversed();
+                lsReversed(arguments);
                 break;
             case "mkdir":
                 mkdir(arguments);
@@ -91,29 +91,23 @@ public class Terminal {
                 wc(arguments);
                 break;
             case "history":
-                history();
+                history(arguments);
                 break;
             case "exit":
                 exit();
                 break;
         }
     }
-    public static void echo(List<String> arguments) {
+    public void echo(List<String> arguments) {
         for (String s : arguments) {
             System.out.print(s + " ");
         }
         System.out.println();
     }
-
-    public static void exit() {
-        System.exit(0);
-    }
-
-    public static void pwd() {
+    public void pwd() {
         System.out.println(cur.toString());
     }
-
-    public static void cd(List<String> arguments) {
+    public void cd(List<String> arguments) {
         if(arguments.isEmpty()){
             cur = Paths.get("");
             cur = cur.toAbsolutePath();
@@ -137,8 +131,11 @@ public class Terminal {
             System.out.println("Invalid arguments!");
         }
     }
-
-    public static void ls() {
+    public void ls(List<String> arguments) {
+        if(arguments.size() >= 1){
+            System.out.println("Invalid arguments!");
+            return;
+        }
         File directoryName = new File(cur.toUri());
         File[] fileList = directoryName.listFiles();
 
@@ -152,7 +149,11 @@ public class Terminal {
         }
     }
 
-    public static void lsReversed() {
+    public void lsReversed(List<String> arguments) {
+        if(arguments.size() >= 1){
+            System.out.println("Invalid arguments!");
+            return;
+        }
         File directoryName = new File(cur.toUri());
         File[] fileList = directoryName.listFiles();
 
@@ -166,7 +167,7 @@ public class Terminal {
         }
     }
 
-    public static void mkdir(List<String> arguments) {
+    public void mkdir(List<String> arguments) {
         if (arguments.size() == 0) {
             System.out.println("Invalid arguments!");
             return;
@@ -185,7 +186,7 @@ public class Terminal {
         }
     }
 
-    public static void rmdir(List<String> arguments) {
+    public void rmdir(List<String> arguments) {
         if (arguments.size() != 1) {
             System.out.println("Invalid arguments!");
             return;
@@ -198,7 +199,7 @@ public class Terminal {
                 if (subDir.exists() && subDir.isDirectory()) {
                     if (subDir.list().length == 0) {
                         if (subDir.delete()) {
-                            System.out.println("Deleted directory successfully");
+                            System.out.println("Deleted directory successfully " + subDir.toString());
                         }
                         else {
                             System.out.println("Failed to delete directory");
@@ -235,14 +236,14 @@ public class Terminal {
         }
     }
 
-    public static void touch(List<String> arguments) {
+    public void touch(List<String> arguments) {
         if (arguments.size() != 1) {
             System.out.println("Invalid arguments!");
+            return;
         }
 
         Path path1 = cur.resolve(arguments.get(0)).toAbsolutePath();
         try {
-
             if (!Files.exists(path1)) {
                 Files.createFile(path1);
                 System.out.println("File created at: " + path1.toAbsolutePath());
@@ -254,7 +255,7 @@ public class Terminal {
         }
     }
 
-    public static void cp(List<String> arguments) throws IOException {
+    public void cp(List<String> arguments) throws IOException {
         if (arguments.size() != 2) {
             System.out.println("The number of arguments must be 2");
             return;
@@ -284,17 +285,15 @@ public class Terminal {
             file2.write(line);
             file2.write('\n');
         }
+        System.out.println("Files concatenated successfully");
         file1.close();
         file2.close();
     }
-
-    public static void rm(List<String> arguments) {
-        // Implement rm command logic
+    public void rm(List<String> arguments) {
         if(arguments.size() != 1){
             System.out.println("Invalid command!");
             return;
         }
-
         if(Files.exists(cur.resolve(arguments.get(0))) && Files.isRegularFile(cur.resolve(arguments.get(0)))){
             File file = new File(cur.resolve(arguments.get(0)).toString());
             if (file.delete()) {
@@ -308,8 +307,7 @@ public class Terminal {
             System.out.println("Invalid arguments!");
         }
     }
-
-    public static void cat(List<String> arguments) throws IOException {
+    public void cat(List<String> arguments) throws IOException {
         if (arguments.size() > 2 || arguments.isEmpty()) {
             System.out.println("Invalid arguments");
             return;
@@ -355,8 +353,7 @@ public class Terminal {
         }
         file1.close();
     }
-
-    public static void wc(List<String> arguments) {
+    public void wc(List<String> arguments) {
         File file = new File(cur.resolve(arguments.get(0)).toString());
         if(arguments.size() != 1){
             System.out.println("Invalid arguments!");
@@ -385,7 +382,11 @@ public class Terminal {
         }
     }
 
-    public static void history() {
+    public void history(List<String> arguments) {
+        if(arguments.size() >= 1){
+            System.out.println("Invalid arguments!");
+            return;
+        }
         int counter = 1;
         for (String item : historyList) {
             System.out.println(counter + "- " + item);
@@ -393,10 +394,15 @@ public class Terminal {
         }
     }
 
+    public  void exit() {
+        System.exit(0);
+    }
+
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
-        parser = new Parser();
-        cur = cur.toAbsolutePath();
+        Terminal t = new Terminal();
+        t.parser = new Parser();
+        t.cur = t.cur.toAbsolutePath();
         String command;
 
         while (true) {
@@ -405,18 +411,15 @@ public class Terminal {
 
             String userInput = scanner.nextLine();
 
-            if (userInput.equals("exit")) break;
-
-            if (parser.parse(userInput)) {
-                String[] argsArray = parser.getArgs();
+            if (t.parser.parse(userInput)) {
+                String[] argsArray = t.parser.getArgs();
                 arguments = Arrays.asList(argsArray);
-                command = parser.getCommandName();
-                chooseCommandAction(command, arguments);
+                command = t.parser.getCommandName();
+                t.chooseCommandAction(command, arguments);
             }
             else {
                 System.out.println("Invalid command!");
             }
         }
-        scanner.close();
     }
 }

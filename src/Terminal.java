@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +27,7 @@ public class Terminal {
                 ls();
                 break;
             case "ls -r":
-                lsRecursive(arguments);
+                lsReversed();
                 break;
             case "mkdir":
                 mkdir(arguments);
@@ -113,8 +114,18 @@ public class Terminal {
         }
     }
 
-    public static void lsRecursive(List<String> arguments) {
-        // Implement ls -r command logic
+    public static void lsReversed() {
+        File directoryName = new File(cur.toUri());
+        File[] fileList = directoryName.listFiles();
+
+        if (fileList != null) {
+            for (int i = fileList.length - 1; i >= 0; i--) {
+                File file = fileList[i];
+                System.out.println(file.getName());
+            }
+        } else {
+            System.out.println("The directory is empty or doesn't exist!");
+        }
     }
 
     public static void mkdir(List<String> arguments) {
@@ -187,7 +198,22 @@ public class Terminal {
     }
 
     public static void touch(List<String> arguments) {
-        // Implement touch command logic
+        if (arguments.size() != 1) {
+            System.out.println("Invalid arguments!");
+        }
+
+        Path path1 = cur.resolve(arguments.get(0)).toAbsolutePath();
+        try {
+
+            if (!Files.exists(path1)) {
+                Files.createFile(path1);
+                System.out.println("File created at: " + path1.toAbsolutePath());
+            } else {
+                System.out.println("File already exists at: " + path1.toAbsolutePath());
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred while creating the file: " + e.getMessage());
+        }
     }
 
     public static void cp(List<String> arguments) {

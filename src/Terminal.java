@@ -85,7 +85,7 @@ public class Terminal {
                     cur = cur.getParent();
             }
             else{
-                Path tmp = Paths.get(arguments.get(0)).toAbsolutePath();
+                Path tmp = cur.resolve(arguments.get(0)).toAbsolutePath();
                 if(!tmp.toFile().exists() || !tmp.toFile().isDirectory()){
                     System.out.println("Invalid path!");
                 }

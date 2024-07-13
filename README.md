@@ -1,4 +1,4 @@
-# Command Line Interpreter
+# Command-Line-Interpreter
 
 ## Description
 This Java application simulates a basic command-line interpreter (CLI) with various commands like echo, pwd, cd, ls, mkdir, rmdir, touch, cp, rm, cat, wc, history, and exit. It allows users to navigate directories, manipulate files, display file contents, and manage command history.
